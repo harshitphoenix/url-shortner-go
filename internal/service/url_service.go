@@ -30,6 +30,10 @@ func (s *urlService) Shorten(originalURL string) (*domain.URL, error) {
 		return nil, err
 	}
 
+	if existing, err := s.repo.FindByURL(originalURL); err == nil {
+		return existing, nil
+	}
+
 	code, err := generator.Code(s.codeLen)
 	if err != nil {
 		return nil, fmt.Errorf("generating code: %w", err)

@@ -14,6 +14,7 @@ type URL struct {
 type Repository interface {
 	Save(url *URL) error
 	FindByCode(code string) (*URL, error)
+	FindByURL(originalURL string) (*URL, error)
 	IncrementClicks(code string) error
 }
 

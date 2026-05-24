@@ -8,14 +8,16 @@ import (
 )
 
 type repository struct {
-	mu   sync.RWMutex
-	data map[string]*domain.URL
+	mu      sync.RWMutex
+	byCode  map[string]*domain.URL
+	byURL   map[string]*domain.URL
 }
 
 // New returns a thread-safe in-memory repository.
 func New() domain.Repository {
 	return &repository{
-		data: make(map[string]*domain.URL),
+		byCode: make(map[string]*domain.URL),
+		byURL:  make(map[string]*domain.URL),
 	}
 }
 
@@ -23,12 +25,12 @@ func (r *repository) Save(url *domain.URL) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if _, exists := r.data[url.Code]; exists {
+	if _, exists := r.byCode[url.Code]; exists {
 		return domain.ErrCodeConflict
 	}
-	// store a copy so the caller cannot mutate internal state
 	cp := *url
-	r.data[url.Code] = &cp
+	r.byCode[url.Code] = &cp
+	r.byURL[url.OriginalURL] = &cp
 	return nil
 }
 
@@ -36,7 +38,19 @@ func (r *repository) FindByCode(code string) (*domain.URL, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	url, ok := r.data[code]
+	url, ok := r.byCode[code]
+	if !ok {
+		return nil, domain.ErrNotFound
+	}
+	cp := *url
+	return &cp, nil
+}
+
+func (r *repository) FindByURL(originalURL string) (*domain.URL, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+
+	url, ok := r.byURL[originalURL]
 	if !ok {
 		return nil, domain.ErrNotFound
 	}
@@ -48,7 +62,7 @@ func (r *repository) IncrementClicks(code string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	url, ok := r.data[code]
+	url, ok := r.byCode[code]
 	if !ok {
 		return domain.ErrNotFound
 	}

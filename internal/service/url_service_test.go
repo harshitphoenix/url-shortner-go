@@ -13,6 +13,21 @@ func newSvc() domain.Service {
 	return service.New(memory.New(), "http://localhost:8080", 7)
 }
 
+func TestShorten_Idempotent(t *testing.T) {
+	svc := newSvc()
+	u1, err := svc.Shorten("https://example.com")
+	if err != nil {
+		t.Fatalf("first Shorten: %v", err)
+	}
+	u2, err := svc.Shorten("https://example.com")
+	if err != nil {
+		t.Fatalf("second Shorten: %v", err)
+	}
+	if u1.Code != u2.Code {
+		t.Errorf("expected same code, got %q and %q", u1.Code, u2.Code)
+	}
+}
+
 func TestShorten_ReturnsURL(t *testing.T) {
 	svc := newSvc()
 	u, err := svc.Shorten("https://example.com")

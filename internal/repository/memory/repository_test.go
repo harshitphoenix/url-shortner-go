@@ -51,6 +51,28 @@ func TestSave_IsolatesCopy(t *testing.T) {
 	}
 }
 
+func TestFindByURL(t *testing.T) {
+	repo := memory.New()
+	u := newURL("abc1234", "https://example.com")
+	_ = repo.Save(u)
+
+	got, err := repo.FindByURL("https://example.com")
+	if err != nil {
+		t.Fatalf("FindByURL: %v", err)
+	}
+	if got.Code != "abc1234" {
+		t.Errorf("Code = %q, want abc1234", got.Code)
+	}
+}
+
+func TestFindByURL_NotFound(t *testing.T) {
+	repo := memory.New()
+	_, err := repo.FindByURL("https://missing.com")
+	if err != domain.ErrNotFound {
+		t.Errorf("expected ErrNotFound, got %v", err)
+	}
+}
+
 func TestFindByCode_NotFound(t *testing.T) {
 	repo := memory.New()
 	_, err := repo.FindByCode("missing")

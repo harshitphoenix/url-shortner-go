@@ -77,6 +77,8 @@ All settings are read from environment variables.
 
 ## Running
 
+### Go
+
 ```bash
 go run ./cmd/server
 ```
@@ -85,6 +87,28 @@ With custom settings:
 
 ```bash
 PORT=9090 BASE_URL=https://go.sh CODE_LENGTH=8 go run ./cmd/server
+```
+
+### Docker
+
+```bash
+docker build -t url-shortner .
+docker run -p 8080:8080 url-shortner
+
+# with custom config
+docker run -p 9090:9090 -e PORT=9090 -e BASE_URL=https://go.sh url-shortner
+```
+
+### Docker Compose
+
+```bash
+docker compose up --build
+```
+
+With custom settings:
+
+```bash
+PORT=9090 BASE_URL=https://go.sh CODE_LENGTH=8 docker compose up --build
 ```
 
 ## Example
